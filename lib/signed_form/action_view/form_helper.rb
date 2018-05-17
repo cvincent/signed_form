@@ -20,7 +20,7 @@ module SignedForm
         return super unless sign_form?(options)
         options = handle_signed_form_options(options)
 
-        super record, options do |f|
+        super options do |f|
           output = capture(f, &block)
           f.form_signature_tag + output
         end
