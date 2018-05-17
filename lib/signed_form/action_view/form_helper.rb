@@ -7,10 +7,32 @@ module SignedForm
       # @option options :digest_grace_period [Integer] Time in seconds to allow old forms
       # @option options :wrap_form [Symbol] Method of a form builder to wrap. Default is form_for
       def form_for(record, options = {}, &block)
-        if options[:signed].nil? && !SignedForm.options[:signed] || !options[:signed].nil? && !options[:signed]
-          return super
-        end
+        return super unless sign_form?(options)
+        options = handle_signed_form_options(options)
 
+        super record, options do |f|
+          output = capture(f, &block)
+          f.form_signature_tag + output
+        end
+      end
+      
+      def form_with(options = {}, &block)
+        return super unless sign_form?(options)
+        options = handle_signed_form_options(options)
+
+        super record, options do |f|
+          output = capture(f, &block)
+          f.form_signature_tag + output
+        end
+      end
+      
+      private
+      
+      def sign_form?(options)
+        !(options[:signed].nil? && !SignedForm.options[:signed] || !options[:signed].nil? && !options[:signed])
+      end
+      
+      def handle_signed_form_options(options)
         options = SignedForm.options.merge options
         options[:builder] ||= ::ActionView::Helpers::FormBuilder
 
@@ -21,11 +43,8 @@ module SignedForm
         elsif !ancestors.include?(SignedForm::FormBuilder)
           options[:builder] = SignedForm::FormBuilder::BUILDERS[options[:builder]]
         end
-
-        super record, options do |f|
-          output = capture(f, &block)
-          f.form_signature_tag + output
-        end
+        
+        options
       end
     end
   end
