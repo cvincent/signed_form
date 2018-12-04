@@ -97,7 +97,7 @@ module SignedForm
       @signed_attributes[:_options_] = {}
 
       if options[:sign_destination]
-        @signed_attributes[:_options_][:method] = options[:html][:method]
+        @signed_attributes[:_options_][:method] = options.fetch(:html, method: :post)[:method]
         @signed_attributes[:_options_][:url]    = options[:url]
       end
 
